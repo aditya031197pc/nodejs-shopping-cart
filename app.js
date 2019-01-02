@@ -1,17 +1,17 @@
 // core modules
-const http = require('http');
+// const http = require('http');
 const path = require('path');
 
 // third party modules
 const express = require('express');
 const bodyParser = require('body-parser');
-const hbs = require('express-handlebars');
+// const hbs = require('express-handlebars');
 const app = express();
 
 // our modules
-const rootDir = require('./utils/path');
-const adminRouter = require('./routes/admin').router;
-const shopRouter = require('./routes/shop').router;
+// const rootDir = require('./utils/path');
+const adminRouter = require('./routes/admin.routes').router;
+const shopRouter = require('./routes/shop.routes').router;
 
 
 // app.engine('hbs', hbs({layoutsDir: './views/layout/', defaultLayout: 'main-layout', extname: 'hbs'}));
@@ -30,7 +30,8 @@ app.use('/admin', adminRouter);
 app.use(shopRouter);
 app.use((req, res, next) => {
     res.status(404).render('404', {
-        docTitle: 'Page Not Found'
+        docTitle: 'Page Not Found',
+        path: '/404'
     });
 });
 

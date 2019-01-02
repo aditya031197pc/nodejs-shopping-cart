@@ -2,7 +2,7 @@ const path = require('path');
 
 const  router = require('express').Router();
 
-const rootDir = require('./../utils/path');
+const rootDir = require('../utils/path.util');
 
 const products =[];
 
