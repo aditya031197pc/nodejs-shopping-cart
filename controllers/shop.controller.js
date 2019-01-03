@@ -1,4 +1,5 @@
 const Product = require('../models/product.model');
+const Cart = require('../models/cart.model');
 
 // GET /
 exports.getIndex = (req, res, next) => {
@@ -12,6 +13,7 @@ exports.getIndex = (req, res, next) => {
     });
 };
 
+// GET /products
 exports.getProducts = (req, res, next) => {
     Product.fetchAll( products => {
         console.log('product controller', products);
@@ -23,11 +25,41 @@ exports.getProducts = (req, res, next) => {
     });
 };
 
+// GET /products/:productId
+exports.getProduct = (req, res, next) => {
+    const productId = req.params.productId;
+    Product.findById(productId, product => {
+        res.render('shop/product-details', {
+            docTitle: product.title,
+            path: '/products',
+            product
+        });
+    });
+}
+
 // GET /cart
 exports.getCart = (req, res, next) => {
     res.render('shop/cart', {
-        docTitle: 'Ypur Cart',
+        docTitle: 'Your Cart',
         path: '/cart'
+    });
+};
+
+// POST /cart
+exports.postCart = (req, res, next) => {
+    const productId = req.body.productId;
+    Product.findById(productId, product => {
+        Cart.addProduct(productId, product.price);
+        res.redirect('/cart');
+    });
+};
+
+
+// GET /orders
+exports.getOrders = (req, res, next) => {
+    res.render('shop/orders', {
+        docTitle: 'Orders',
+        path: '/orders'
     });
 };
 

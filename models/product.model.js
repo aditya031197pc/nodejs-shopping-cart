@@ -18,12 +18,16 @@ const getProductsFromFile = cb => {
 };
 
 module.exports = class Product {
-    constructor(t) {
-        this.title = t;
+    constructor(title, imageURL, price, description) {
+        this.title = title;
+        this.imageURL = imageURL;
+        this.price = price;
+        this.description = description;
         // this creates a property title in the newly created object
     }
 
     save() {
+        this.id = Math.random().toString();
         getProductsFromFile(products => {
             products.push(this);
             fs.writeFile(savePath, JSON.stringify(products), (err) => {
@@ -35,5 +39,13 @@ module.exports = class Product {
     static fetchAll(cb) {
         // a utility method to fetch all the products without having the need to create a dummy object
         getProductsFromFile(cb);
+    }
+
+    static findById(id, cb) {
+        getProductsFromFile( products => {
+            const product = products.find(p => p.id === id);
+            console.log('Found', product)
+            cb(product);
+        });
     }
 }
