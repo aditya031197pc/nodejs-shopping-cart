@@ -41,4 +41,33 @@ module.exports = class Cart {
             });
         });
     }
+    static deleteProduct(id, productPrice, cb) {
+        getCartFromFile( cart => {
+            // right now we are removing all the products at once. We will fix this later
+            if(cart.products === []){
+                console.log("NO PRODUCTS IN CART");
+                return;
+            }
+            console.log("PRODUCTS ARE IN CART", cart);
+            
+            let updatedCart = { products:[...cart.products], totalPrice: cart.totalPrice};
+            
+            const existingProduct = updatedCart.products.find(p => p.id === id);
+            console.log("FOUND PRODUCT", existingProduct);
+            if(existingProduct) {
+            updatedCart.products = [...updatedCart.products.filter(p => p.id !== id)];
+            updatedCart.totalPrice = updatedCart.totalPrice - existingProduct.qty * productPrice;  
+            }
+            fs.writeFile(cartPath, JSON.stringify(updatedCart), (err) =>{
+                if(!err) {
+                    cb(existingProduct);
+                }
+            });
+        });
+    }
+    static getCart(cb) {
+        getCartFromFile( cart => {
+            cb(cart);
+        });
+    }
 }

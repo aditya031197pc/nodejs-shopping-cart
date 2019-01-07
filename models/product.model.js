@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
+
+const Cart = require('./cart.model');
 const rootDirectory = require('./../utils/path.util').rootDirectory;
 // products = []; // to store all the products
 
@@ -27,7 +29,7 @@ module.exports = class Product {
         // this creates a property title in the newly created object
     }
 
-    save() {
+    save(cb) {
         getProductsFromFile(products => {
             console.log('get id', this.id);
             if(this.id) {
@@ -37,12 +39,18 @@ module.exports = class Product {
                 let updatedProducts = [...products];
                 updatedProducts[existingProductIndex] = this; // this here will be the updated product.
                 fs.writeFile(savePath, JSON.stringify(updatedProducts), (err) => {
+                   if(!err) {
+                       cb();
+                   }
                     console.log('err', err);
                 });
             } else {
                 this.id = Math.random().toString();
                 products.push(this);
                 fs.writeFile(savePath, JSON.stringify(products), (err) => {
+                    if(!err) {
+                        cb();
+                    }
                     console.log('err', err);
                 });
             }
@@ -64,10 +72,15 @@ module.exports = class Product {
 
     static deleteById(id, cb) {
         getProductsFromFile( products => {
+            const product = products.find(p => p.id === id);
             const remainingProducts = products.filter(p => p.id !== id);
             fs.writeFile(savePath, JSON.stringify(remainingProducts), (err) => {
-                console.log('err', err);
-                cb();
+                if(!err) {
+                    console.log("CALLING VIA DELETE PRODUCT", id, product.price);
+                    Cart.deleteProduct(id, product.price);
+                    cb(product);
+                }
+                // console.log('err', err);
             });                
         });
     }
