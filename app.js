@@ -21,14 +21,6 @@ const db = require('./utils/database.util');
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
-db.execute('SELECT * FROM PRODUCTS')
-.then((result) => {
-    console.log('result', result[0]);
-    console.log('meta-data', result[1]);
-}).catch((err) => {
-    
-});
-
 app.use(bodyParser.urlencoded({extended: false}));
 // this does the work of combining the chunks and parsing the body of request.
 // Must be done before the routing. 

@@ -16,19 +16,25 @@ exports.postAddProducts = (req, res, next) => {
     const price = req.body.price;
     const description = req.body.description;
     const product = new Product(null, title, imageURL, price, description);
-    product.save();
-    res.redirect('/');
+    product.save().then(() =>{
+        res.redirect('/');
+
+    }).catch((err) => {
+        console.log('[admin.controller.postAddProducts.save]', err);
+    });
 };
 
 // GET /admin/products
 exports.getProducts = (req, res, next) => {
-    Product.fetchAll( products => {
-        console.log('admin controller', products);
+    Product.fetchAll().then(([rows, fieldData]) => {
+        console.log('[admin.controller.fetchAll]', rows);
         res.render('admin/products', {
-        products,
-        docTitle: 'Admin Products',
-        path: '/admin/products',
-        });
+            products: rows,
+            docTitle: 'Admin Products',
+            path: '/admin/products',
+        }); 
+    }).catch((err) => {
+        console.log('[admin.controller.fetchAll]', err);
     });
 };
 
@@ -40,7 +46,8 @@ exports.getEditProduct = (req, res, next) => {
     }
     // "true" instead of true
     const productId = req.params.productId;
-    Product.findById(productId, product => {
+    Product.findById(productId).then( ([rows, fieldData]) => {
+        const product  = rows[0];
         if(!product) {
             console.log('not found');
             return res.redirect('/');
@@ -51,6 +58,8 @@ exports.getEditProduct = (req, res, next) => {
             editing: editMode,
             product  
         });
+    }).catch((err)=>{
+        consle.log('[admin.controller.getEditProduct]', err);
     });
 };
 
@@ -63,8 +72,10 @@ exports.postEditProduct = (req, res, next) => {
     const updatedPrice = req.body.price;
     const updatedDescription = req.body.description;
     const updatedProduct = new Product(id, updatedTitle, updatedImageURL, updatedPrice, updatedDescription);
-    updatedProduct.save(()=>{
+    updatedProduct.save().then(()=>{
         res.redirect('/admin/products');
+    }).catch(() => {
+        console.log('[admin.controller.postEditProduct]', err);        
     });
 };
 
