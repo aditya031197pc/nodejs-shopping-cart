@@ -6,8 +6,8 @@
         <main class="centered">
             <h1><%= product.title %></h1>
             <hr>
-            <div>
-                <img style="max-width: 300px" src="<%= product.imageURL %>" alt="<%= product.title %>">
+            <div class="image-container">
+                <img src="<%= product.imageURL %>" alt="<%= product.title %>">
             </div>
             <h2>$<%= product.price %></h2>
             <p><%= product.description %></p>

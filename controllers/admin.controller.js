@@ -15,21 +15,25 @@ exports.postAddProducts = (req, res, next) => {
     const imageURL = req.body.imageURL;
     const price = req.body.price;
     const description = req.body.description;
-    const product = new Product(null, title, imageURL, price, description);
-    product.save().then(() =>{
-        res.redirect('/');
-
+    req.user.createProduct({ // this cool method is added specially after we setup our associations in the app.js
+        title,
+        imageURL,
+        price,
+        description
+    }).then((result) => {
+      console.log(result);  
+      console.log("product created");
+      res.redirect('/admin/products');  
     }).catch((err) => {
-        console.log('[admin.controller.postAddProducts.save]', err);
+        console.log("cant create product", err);
     });
 };
 
 // GET /admin/products
 exports.getProducts = (req, res, next) => {
-    Product.fetchAll().then(([rows, fieldData]) => {
-        console.log('[admin.controller.fetchAll]', rows);
+    req.user.getProducts().then((products) => {
         res.render('admin/products', {
-            products: rows,
+            products,
             docTitle: 'Admin Products',
             path: '/admin/products',
         }); 
@@ -46,8 +50,9 @@ exports.getEditProduct = (req, res, next) => {
     }
     // "true" instead of true
     const productId = req.params.productId;
-    Product.findById(productId).then( ([rows, fieldData]) => {
-        const product  = rows[0];
+    req.user.getProducts({where: {id: productId}}).then( (products) => {
+        // this ensures that the logged in user is only editing its own products
+        const product = products[0];
         if(!product) {
             console.log('not found');
             return res.redirect('/');
@@ -71,8 +76,13 @@ exports.postEditProduct = (req, res, next) => {
     const updatedImageURL = req.body.imageURL;
     const updatedPrice = req.body.price;
     const updatedDescription = req.body.description;
-    const updatedProduct = new Product(id, updatedTitle, updatedImageURL, updatedPrice, updatedDescription);
-    updatedProduct.save().then(()=>{
+    Product.findById(id).then((product) => {
+        product.title = updatedTitle;
+        product.imageURL = updatedImageURL;
+        product.price = updatedPrice;
+        product.description = updatedDescription;
+        return product.save();
+    }).then((result)=>{
         res.redirect('/admin/products');
     }).catch(() => {
         console.log('[admin.controller.postEditProduct]', err);        
@@ -83,7 +93,12 @@ exports.postEditProduct = (req, res, next) => {
 
 exports.postDeleteProduct = (req, res, next) => {
     const id = req.body.productId;
-    Product.deleteById(id, (deletedProduct) => {
+    Product.findById(id).then((product) => {
+        return product.destroy();
+    }).then( () => {
+        console.log("Product Deleted")
         res.redirect('/admin/products');
+    }).catch((err) => {
+       console.log(err); 
     });
 };

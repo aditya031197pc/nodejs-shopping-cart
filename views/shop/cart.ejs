@@ -4,22 +4,28 @@
     <body>
         <%- include('../includes/navigation.ejs') %>
         <main>
-            <%if(cartData.products.length > 0) { %>
+            <%if(products.length > 0) { %>
                 <ul>
-                    <% for(p of cartData.products) { %>
+                    <% for(p of products) { %>
                         <li>
-                            <p><%=p.productData.title %> ( <%=p.qty %> )</p>
+                            <p><%=p.title %> ( <%=p.cartItem.qty %> )</p>
                             <form action="/cart-delete-product" method="POST">
-                                <input type="hidden" name="productId" value="<%= p.productData.id %>">
+                                <input type="hidden" name="productId" value="<%= p.id %>">
                                 <button class="btn" type="submit">Delete</button>
                             </form>
                         </li>
                     <% } %>
                 </ul>
-                <h2>Total Price = <%=cartData.totalPrice%></h2>
+                <h2>Total Price = <%=products.totalPrice%></h2>
+                <hr>
+                <div class="centered">
+                    <form action="/create-order" method="POST">
+                        <button class="btn" type="submit">Order Now</button>
+                    </form>
+                </div>
             <%  } else { %>
                 <h1>No Products in cart</h1>
-                <h2>Total Price = <%=cartData.totalPrice%></h2>
+                <h2>Total Price = <%=products.totalPrice%></h2>
             <% } %>
         </main>
     <%- include('../includes/end.ejs') %>
