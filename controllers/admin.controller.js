@@ -1,5 +1,6 @@
 const Product = require('../models/product.model');
 
+
 // GET /admin/add-products
 exports.getAddProducts = (req, res, next) => {
     res.render('admin/edit-product', {
@@ -15,13 +16,10 @@ exports.postAddProducts = (req, res, next) => {
     const imageURL = req.body.imageURL;
     const price = req.body.price;
     const description = req.body.description;
-    req.user.createProduct({ // this cool method is added specially after we setup our associations in the app.js
-        title,
-        imageURL,
-        price,
-        description
-    }).then((result) => {
-      console.log(result);  
+    const product = new Product(title, price, imageURL, description);
+    product.save()
+    .then((result) => {
+      console.log(result);
       console.log("product created");
       res.redirect('/admin/products');  
     }).catch((err) => {
@@ -31,7 +29,7 @@ exports.postAddProducts = (req, res, next) => {
 
 // GET /admin/products
 exports.getProducts = (req, res, next) => {
-    req.user.getProducts().then((products) => {
+    Product.fetchAll().then((products) => {
         res.render('admin/products', {
             products,
             docTitle: 'Admin Products',
@@ -45,14 +43,12 @@ exports.getProducts = (req, res, next) => {
 // GET /admin/:id/edit-product
 exports.getEditProduct = (req, res, next) => {
     const editMode = req.query.edit;
+    // "true" instead of true
     if(!editMode) {
        return res.redirect('/');
     }
-    // "true" instead of true
     const productId = req.params.productId;
-    req.user.getProducts({where: {id: productId}}).then( (products) => {
-        // this ensures that the logged in user is only editing its own products
-        const product = products[0];
+    Product.fetchById(productId).then( (product) => {
         if(!product) {
             console.log('not found');
             return res.redirect('/');
@@ -72,17 +68,13 @@ exports.getEditProduct = (req, res, next) => {
 
 exports.postEditProduct = (req, res, next) => {
     const id = req.body.productId;
+    console.log('[Product]', id);
     const updatedTitle = req.body.title;
     const updatedImageURL = req.body.imageURL;
     const updatedPrice = req.body.price;
     const updatedDescription = req.body.description;
-    Product.findById(id).then((product) => {
-        product.title = updatedTitle;
-        product.imageURL = updatedImageURL;
-        product.price = updatedPrice;
-        product.description = updatedDescription;
-        return product.save();
-    }).then((result)=>{
+    const product = new Product(updatedTitle, updatedPrice, updatedImageURL, updatedDescription, id);
+    product.save().then((result)=>{
         res.redirect('/admin/products');
     }).catch(() => {
         console.log('[admin.controller.postEditProduct]', err);        
@@ -93,9 +85,7 @@ exports.postEditProduct = (req, res, next) => {
 
 exports.postDeleteProduct = (req, res, next) => {
     const id = req.body.productId;
-    Product.findById(id).then((product) => {
-        return product.destroy();
-    }).then( () => {
+    Product.deleteById(id).then((result) => {
         console.log("Product Deleted")
         res.redirect('/admin/products');
     }).catch((err) => {

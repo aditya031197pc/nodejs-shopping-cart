@@ -1,30 +1,43 @@
-const Sequelize = require('sequelize');
+const { ObjectId } = require('mongoDb');
 
-const sequelize = require('./../utils/database.util');
+const { getDB } = require('./../utils/database.util');
 
-const Product = sequelize.define('product', {
-    id: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-        autoIncrement: true,
-        primaryKey: true
-    },
-    title: {
-        type: Sequelize.STRING,
-        allowNull: false
-    },
-    imageURL: {
-        type: Sequelize.STRING,
-        allowNull:false
-    },
-    price: {
-        type: Sequelize.DOUBLE,
-        allowNull: false
-    },
-    description: {
-        type: Sequelize.STRING,
-        allowNull:false
-    },
-});
+class Product {
+    constructor(title, price, imageURL, description, id) {
+        this.title = title;
+        this.description = description;
+        this.imageURL = imageURL;
+        this.price = price;
+        this._id = id ? new ObjectId(id): null;
+    }
+
+    save() {
+        const db = getDB();
+        if(this._id) {
+            // updation
+            return db.collection('products').updateOne({_id: new ObjectId(this._id)}, {
+                $set: this
+            });
+        } else {
+            // creation
+            return db.collection('products').insertOne(this);
+        }
+    }
+
+    static fetchAll() {
+        const db = getDB();
+        return db.collection('products').find().toArray();
+    }
+
+    static fetchById(id) {
+        const db = getDB();
+        return db.collection('products').find({_id: new ObjectId(id)}).next();
+    }
+
+    static deleteById(id) {
+        const db = getDB();
+        return db.collection('products').deleteOne({_id: new ObjectId(id)});
+    }
+};
 
 module.exports = Product;
