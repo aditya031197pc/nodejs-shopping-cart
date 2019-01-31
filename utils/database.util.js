@@ -4,8 +4,9 @@ const MongoClient = mongoDB.MongoClient;
 let _db;
 
 exports.mongoConnect = (cb) => {
-    MongoClient.connect('mongodb+srv://username:<password>@cluster0-bu1cz.mongodb.net/shop?retryWrites=true',
-     {useNewUrlParser: true})
+    MongoClient.connect('mongodb+srv://aditya:aditya97@cluster0-bu1cz.mongodb.net/shop?retryWrites=true',
+     {useNewUrlParser: true}
+     )
     .then(client => {
         console.log('Connected to Mongodb');
         _db = client.db();

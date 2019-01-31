@@ -5,18 +5,14 @@ const path = require('path');
 // third party modules
 const express = require('express');
 const bodyParser = require('body-parser');
-// const hbs = require('express-handlebars');
 const app = express();
-const Sequelize = require('sequelize');
+
 // our modules
-// const rootDir = require('./utils/path');
 const adminRouter = require('./routes/admin.routes').router;
 const shopRouter = require('./routes/shop.routes').router;
 const errorController = require('./controllers/error.controller');
 const { mongoConnect } = require('./utils/database.util');
-
-// app.engine('hbs', hbs({layoutsDir: './views/layout/', defaultLayout: 'main-layout', extname: 'hbs'}));
-// app.set('view engine', 'hbs');
+const User = require('./models/user.model');
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
@@ -27,14 +23,14 @@ app.use(bodyParser.urlencoded({extended: false}));
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// app.use((req, res, next) => {
-//     User.findById(1).then((user) => {
-//         req.user = user; //  this is the sequelize object being added to the request object and not on requestBody
-//         next(); // it is a must if you are not returning a response        
-//     }).catch((err) => {
-//         console.log('user middleware', err);
-//     });
-// });
+app.use((req, res, next) => {
+    User.findById("5c50f945d5fb6a099428ae87").then((user) => {
+        req.user = new User(user.name, user.email, user.cart, "5c50f945d5fb6a099428ae87");
+        next(); // it is a must if you are not returning a response        
+    }).catch((err) => {
+        console.log('user middleware', err);
+    });
+});
 
 app.use('/admin', adminRouter);
 app.use(shopRouter);

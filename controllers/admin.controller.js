@@ -16,10 +16,10 @@ exports.postAddProducts = (req, res, next) => {
     const imageURL = req.body.imageURL;
     const price = req.body.price;
     const description = req.body.description;
-    const product = new Product(title, price, imageURL, description);
+    const userId = req.user._id;
+    const product = new Product(title, price, imageURL, description, null, userId);
     product.save()
     .then((result) => {
-      console.log(result);
       console.log("product created");
       res.redirect('/admin/products');  
     }).catch((err) => {
@@ -48,7 +48,7 @@ exports.getEditProduct = (req, res, next) => {
        return res.redirect('/');
     }
     const productId = req.params.productId;
-    Product.fetchById(productId).then( (product) => {
+    Product.findById(productId).then( (product) => {
         if(!product) {
             console.log('not found');
             return res.redirect('/');

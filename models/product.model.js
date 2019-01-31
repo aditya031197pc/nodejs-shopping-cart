@@ -3,12 +3,13 @@ const { ObjectId } = require('mongoDb');
 const { getDB } = require('./../utils/database.util');
 
 class Product {
-    constructor(title, price, imageURL, description, id) {
+    constructor(title, price, imageURL, description, id, userId) {
         this.title = title;
         this.description = description;
         this.imageURL = imageURL;
         this.price = price;
         this._id = id ? new ObjectId(id): null;
+        this.userId = userId;
     }
 
     save() {
@@ -29,7 +30,7 @@ class Product {
         return db.collection('products').find().toArray();
     }
 
-    static fetchById(id) {
+    static findById(id) {
         const db = getDB();
         return db.collection('products').find({_id: new ObjectId(id)}).next();
     }
