@@ -1,9 +1,9 @@
 const Product = require('../models/product.model');
-// const Cart = require('../models/cart.model');
+const Order = require('../models/order.model');
 
 // GET /
 exports.getIndex = (req, res, next) => {
-    Product.fetchAll().then((products) => { 
+    Product.find().then((products) => { 
         res.render('shop/index', {
             products,
             docTitle: 'Shop',
@@ -16,7 +16,7 @@ exports.getIndex = (req, res, next) => {
 
 // GET /products
 exports.getProducts = (req, res, next) => {
-    Product.fetchAll().then((products) => {
+    Product.find().then((products) => {
         res.render('shop/product-list', {
             products,
             docTitle: 'All Products',
@@ -41,22 +41,14 @@ exports.getProduct = (req, res, next) => {
     });;
 }
 
-// // GET /:id/details
-// exports.getProductDetails = (req, res, next) => {
-//     res.render('shop/product-details', {
-//         docTitle: 'Product Details'
-//     });
-// };
-
 // GET /cart
 exports.getCart = (req, res, next) => {
-    console.log('USer', req.user.cart.items);
-    req.user.getCart().then((products) => {
-        console.log('products', products);
+    req.user.getCart().then((cart) => {
+        // console.log('cart', cart);
         res.render('shop/cart', {
             docTitle: 'Your Cart',
             path: '/cart',
-            products
+            cart
         });
     }).catch((err) => {
     });
@@ -65,7 +57,6 @@ exports.getCart = (req, res, next) => {
 // POST /cart
 exports.postCart = (req, res, next) => {
     const productId = req.body.productId;
-
     Product.findById(productId).then(product => {
         return req.user.addToCart(product)
     }).then((result) => {
@@ -76,10 +67,11 @@ exports.postCart = (req, res, next) => {
 // POST /cart-delete-product
 exports.deleteCartProduct = (req, res, next) => {
     const productId = req.body.productId;
-    req.user.deleteCartItem(productId).then((result) => {
+    req.user.deleteCartItem(productId)
+    .then((result) => {
         res.redirect('/cart');
     }).catch((err) => {
-        console.log('err');
+        console.log('err', err);
     });
 }
 
@@ -87,7 +79,19 @@ exports.deleteCartProduct = (req, res, next) => {
 // POST /create-order
 
 exports.postCreateOrder = (req, res, next) => {
-    req.user.addOrder().then((result) => {
+    req.user.getCart().then(cart => {
+        const orderItems = cart.products;
+        const order = new Order({
+            user: {
+                name: req.user.name,
+                userId: req.user
+            },
+            items: orderItems
+        });
+        return order.save();
+    }).then((result) => {
+        return req.user.clearCart();
+    }).then(result => {
         res.redirect('/orders');
     }).catch((err) => {
         console.log('create order', err);
@@ -96,7 +100,8 @@ exports.postCreateOrder = (req, res, next) => {
 
 // GET /orders
 exports.getOrders = (req, res, next) => {
-    req.user.getOrders().then((orders) => {
+    Order.find({'user.userId': req.user._id})
+    .then((orders) => {
         res.render('shop/orders', {
             docTitle: 'Orders',
             path: '/orders',
@@ -106,13 +111,3 @@ exports.getOrders = (req, res, next) => {
         console.log('getOrders', err);
     });
 };
-
-
-
-// // GET /checkout
-// exports.getCheckout = (req, res, next) => {
-//     res.render('shop/checkout', {
-//         docTitle: 'Checkout',
-//         path: '/checkout'
-//     });
-// };
