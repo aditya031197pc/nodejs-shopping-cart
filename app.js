@@ -6,13 +6,22 @@ const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const session = require('express-session');
+const MongoDBStore= require('connect-mongodb-session')(session);
 const app = express();
 
 // our modules
+const User = require('./models/user.model');
 const adminRouter = require('./routes/admin.routes').router;
 const shopRouter = require('./routes/shop.routes').router;
+const authRouter = require('./routes/auth.routes').router;
 const errorController = require('./controllers/error.controller');
-const User = require('./models/user.model');
+
+const MONGODB_URI = 'mongodb+srv://aditya:aditya97@cluster0-bu1cz.mongodb.net/shop'
+const sessionStore = new MongoDBStore({
+    uri: MONGODB_URI,
+    collection: 'sessions',
+});
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
@@ -22,36 +31,34 @@ app.use(bodyParser.urlencoded({extended: false}));
 // Must be done before the routing. 
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(session({
+    secret: 'a very looong string',
+    saveUninitialized: false,
+    resave: false,
+    store: sessionStore,
+})); 
 
 app.use((req, res, next) => {
-    User.findById("5c5324d1dceeb618b876f7a0").then((user) => {
+    if(!req.session.user) {
+        return next();
+    }
+    User.findById(req.session.user._id).then( user => {
         req.user = user;
-        next(); // it is a must if you are not returning a response        
-    }).catch((err) => {
-        console.log('user middleware', err);
+        return next();
     });
-});
+})
 
 app.use('/admin', adminRouter);
 app.use(shopRouter);
+app.use(authRouter);
+
+// for all other routes:
 app.use(errorController.get404);
 
-mongoose.connect('mongodb+srv://aditya:aditya97@cluster0-bu1cz.mongodb.net/shop?retryWrites=true', {
+mongoose.connect(MONGODB_URI, {
     useNewUrlParser: true
-}).then((result) => {
-    console.log('Connected to mongo');
-    return User.findOne().then(user => {
-        if(!user) {
-            const dummyUser = new User({
-                name: 'Aditya',
-                email: 'test@text.com',
-                cart: {items: []}
-            });
-            return dummyUser.save();
-        }
-        else return;
-    });
 }).then(() => {
+    console.log('Connected to mongoDb');
     return app.listen(3000);
 }).then(() => {
     console.log('Server started');

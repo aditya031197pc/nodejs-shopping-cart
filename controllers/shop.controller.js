@@ -4,10 +4,14 @@ const Order = require('../models/order.model');
 // GET /
 exports.getIndex = (req, res, next) => {
     Product.find().then((products) => { 
+        console.log('req.session', req.session);
+        console.log('req.session.loggedIn', req.session.isLoggedIn);
+        console.log('req.user', req.user);
         res.render('shop/index', {
             products,
             docTitle: 'Shop',
             path: '/',
+            isLoggedIn: req.session.isLoggedIn
         });
     }).catch((err) => {
         console.log('[shop.controller.getIndex]', err); 
@@ -21,6 +25,7 @@ exports.getProducts = (req, res, next) => {
             products,
             docTitle: 'All Products',
             path: '/products',
+            isLoggedIn: req.session.isLoggedIn
         });
     }).catch((err) => {
         console.log('[shop.controller.getProducts]', err); 
@@ -34,7 +39,8 @@ exports.getProduct = (req, res, next) => {
         res.render('shop/product-details', {
             docTitle: product.title,
             path: '/products',
-            product
+            product,
+            isLoggedIn: req.session.isLoggedIn
         });
     }).catch((err) => {
         console.log('[shop.controller.getProduct]', err); 
@@ -44,11 +50,12 @@ exports.getProduct = (req, res, next) => {
 // GET /cart
 exports.getCart = (req, res, next) => {
     req.user.getCart().then((cart) => {
-        // console.log('cart', cart);
+        console.log('cart', cart);
         res.render('shop/cart', {
             docTitle: 'Your Cart',
             path: '/cart',
-            cart
+            cart,
+            isLoggedIn: req.session.isLoggedIn
         });
     }).catch((err) => {
     });
@@ -105,7 +112,8 @@ exports.getOrders = (req, res, next) => {
         res.render('shop/orders', {
             docTitle: 'Orders',
             path: '/orders',
-            orders
+            orders,
+            isLoggedIn: req.session.isLoggedIn
         }); 
     }).catch((err) => {
         console.log('getOrders', err);
