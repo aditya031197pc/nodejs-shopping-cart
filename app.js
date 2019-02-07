@@ -7,6 +7,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const session = require('express-session');
+const csrf= require('csurf');
+const flash = require('connect-flash');
 const MongoDBStore= require('connect-mongodb-session')(session);
 const app = express();
 
@@ -18,6 +20,7 @@ const authRouter = require('./routes/auth.routes').router;
 const errorController = require('./controllers/error.controller');
 
 const MONGODB_URI = 'mongodb+srv://aditya:aditya97@cluster0-bu1cz.mongodb.net/shop'
+const csrfProtection = csrf(); 
 const sessionStore = new MongoDBStore({
     uri: MONGODB_URI,
     collection: 'sessions',
@@ -38,6 +41,10 @@ app.use(session({
     store: sessionStore,
 })); 
 
+app.use(csrfProtection);
+
+app.use(flash())
+
 app.use((req, res, next) => {
     if(!req.session.user) {
         return next();
@@ -47,6 +54,12 @@ app.use((req, res, next) => {
         return next();
     });
 })
+
+app.use((req, res, next) => {
+    res.locals.isLoggedIn = req.session.isLoggedIn;
+    res.locals.csrfToken = req.csrfToken();
+    next();
+});
 
 app.use('/admin', adminRouter);
 app.use(shopRouter);
