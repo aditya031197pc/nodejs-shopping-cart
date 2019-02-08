@@ -6,6 +6,8 @@ const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const dotEnv= require('dotenv');
+dotEnv.config({path: './environment.env'});
 const session = require('express-session');
 const csrf= require('csurf');
 const flash = require('connect-flash');
