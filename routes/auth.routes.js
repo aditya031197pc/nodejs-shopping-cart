@@ -16,6 +16,7 @@ router.get('/signup', authController.getSignUp);
 
 router.post('/signup',
     [   
+        validations.isValidName,
         validations.isValidEmail,
         validations.isNotExistingEmail, // if email exists it returns an error message
         validations.isValidPassword,

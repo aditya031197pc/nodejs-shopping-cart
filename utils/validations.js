@@ -1,6 +1,9 @@
 const {check, body} = require('express-validator/check');
 const User = require('./../models/user.model');
 
+
+module.exports.isValidName = body('name').isAlpha().withMessage('Name should only contain alphabets');
+
 module.exports.isValidEmail = body('email').isEmail()
     .withMessage('Please enter a valid email');
 

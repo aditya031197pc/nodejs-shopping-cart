@@ -5,19 +5,19 @@
 
 <body>
    <%- include('../includes/navigation.ejs') %>
-
-    <main>
-        <%if(errorMessage) { %>
-            <div class="user-message user-message--error"><%= errorMessage%></div>
-        <% } %>
+   
+   <main>
+        <%- include('../includes/error-message.ejs', {data: {errors : errors, errorMessage: errorMessage}}) %>
         <form class="login-form" action="/login" method="POST">
             <div class="form-control">
                 <label for="email">Email</label>
-                <input type="text" name="email" id="email" value="<%= oldInput.email%>">
+                <input class="<%= errors.find(e => e.param === 'email')? 'invalid' : '' %>"
+                 type="text" name="email" id="email" value="<%= oldInput.email%>">
             </div>
             <div class="form-control">
                 <label for="password">Password</label>
-                <input type="password" name="password" id="password" value="<%= oldInput.password%>">
+                <input class="<%= errors.find(e => e.param === 'password')? 'invalid' : '' %>"
+                 type="password" name="password" id="password" value="<%= oldInput.password%>">
             </div>
             <input type="hidden" value="<%= csrfToken %>" name="_csrf">
             <button class="btn" type="submit">Login</button>
