@@ -1,3 +1,5 @@
+const {validationResult} = require('express-validator/check');
+
 const Product = require('../models/product.model');
 
 
@@ -7,16 +9,43 @@ exports.getAddProducts = (req, res, next) => {
     docTitle: 'Add Product',
     path: '/admin/add-product',
     editing: false,
-    isLoggedIn: req.session.isLoggedIn
+    isLoggedIn: req.session.isLoggedIn,
+    errors:[],
+    oldInput: {
+        title: '',
+        description: '',
+        imageURL: '',
+        price: 0.00
+    }
     });
 };
 
 // POST /admin/add-products
 exports.postAddProducts = (req, res, next) => {
+
     const title = req.body.title;
     const imageURL = req.body.imageURL;
     const price = req.body.price;
     const description = req.body.description;
+    const errors = validationResult(req);
+
+    if(!errors.isEmpty()) {
+        console.log(errors.array())
+        return res.status(422).render('admin/edit-product', {
+            docTitle: 'Add Product',
+            path: '/admin/add-product',
+            editing: false,
+            isLoggedIn: req.session.isLoggedIn,
+            errors:errors.array(),
+            oldInput: {
+                title,
+                imageURL,
+                price,
+                description
+            }
+        });
+    }
+
     const product = new Product({
             title, price, imageURL, description, userId: req.user 
             // here we pass the entire user object but the objectId gets picked up automatically
@@ -65,8 +94,15 @@ exports.getEditProduct = (req, res, next) => {
             docTitle: 'Edit Product',
             path: '/admin/edit-product',
             editing: editMode,
-            product,
-            isLoggedIn: req.session.isLoggedIn
+            oldInput: {
+                productId: product._id,
+                title: product.title,
+                price: product.price,
+                description: product.description,
+                imageURL: product.imageURL
+            },
+            isLoggedIn: req.session.isLoggedIn,
+            errors: []
         });
     }).catch((err)=>{
         consle.log('[admin.controller.getEditProduct]', err);
@@ -81,6 +117,26 @@ exports.postEditProduct = (req, res, next) => {
     const updatedImageURL = req.body.imageURL;
     const updatedPrice = req.body.price;
     const updatedDescription = req.body.description;
+    const errors = validationResult(req);
+
+    if(!errors.isEmpty()) {
+        console.log(errors.array())
+        return res.status(422).render('admin/edit-product', {
+            docTitle: 'Edit Product',
+            path: '/admin/edit-product',
+            editing: "true",
+            isLoggedIn: req.session.isLoggedIn,
+            errors:errors.array(),
+            oldInput: {
+                productId: id,
+                description: updatedDescription,
+                title: updatedTitle,
+                imageURL: updatedImageURL,
+                price: updatedPrice
+            }
+        });
+    }
+
     Product.findById(id).then( product => {
         if(product.userId.toString() !== req.user._id.toString()) {
             return res.redirect('/');

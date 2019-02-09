@@ -21,7 +21,7 @@ const shopRouter = require('./routes/shop.routes').router;
 const authRouter = require('./routes/auth.routes').router;
 const errorController = require('./controllers/error.controller');
 
-const MONGODB_URI = 'mongodb+srv://aditya:aditya97@cluster0-bu1cz.mongodb.net/shop'
+const MONGODB_URI = process.env.MONGODB_URI;
 const csrfProtection = csrf(); 
 const sessionStore = new MongoDBStore({
     uri: MONGODB_URI,
