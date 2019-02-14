@@ -32,6 +32,10 @@ oAuth2Client.refreshAccessToken().then(token => {
              accessToken: accessToken
         }
     });
+}).catch(err => {
+    const error = new Error(err);
+    error.httpStatusCode = 500;
+    return next(error);
 });
 
 // TODO: fix this errors and errorMessage parameters
@@ -80,7 +84,6 @@ exports.postSignUp = (req, res, next) => {
         });
         return newUser.save().then( result => {
             res.redirect('/login');
-
             const mailOptions = {
                 from: process.env.Users_Email,
                 to: email,
@@ -93,7 +96,15 @@ exports.postSignUp = (req, res, next) => {
                 error ? console.log(error) : console.log(response);
                 smtpTransport.close();
             });
+        }).catch(err=> {
+            const error = new Error(err);
+            error.httpStatusCode = 500;
+            return next(error);
         });
+    }).catch(err=> {
+        const error = new Error(err);
+        error.httpStatusCode = 500;
+        return next(error);
     });
 };
 
@@ -153,9 +164,17 @@ exports.postLogin = (req, res, next) => {
                     req.flash('authError', 'Invalid email or Password')
                     res.redirect('/login');
                 }
+            }).catch(err => {
+                const error = new Error(err);
+                error.httpStatusCode = 500;
+                return next(error);
             });
         }
-    }).catch(err => console.log(err));
+    }).catch(err => {
+        const error = new Error(err);
+        error.httpStatusCode = 500;
+        return next(error);
+    });
 };
 
 exports.postLogout = (req,res, next) => {
@@ -230,10 +249,16 @@ exports.postReset = (req, res, next) => {
                         smtpTransport.close();
                     });
                 });
+              }).catch(err => {
+                const error = new Error(err);
+                error.httpStatusCode = 500;
+                return next(error);
               })  
             }
         }).catch((err) => {
-           console.log('err reset', err); 
+            const error = new Error(err);
+            error.httpStatusCode = 500;
+            return next(error);
         });
     });
 };
@@ -262,7 +287,11 @@ exports.getNewPassword = (req,res,next) => {
                 errors: []
             });
         }
-    }).catch(err => console.log(err));
+    }).catch(err => {
+        const error = new Error(err);
+        error.httpStatusCode = 500;
+        return next(error);
+    });
 };
 
 exports.postNewPassword = (req, res, next) => {
@@ -307,5 +336,9 @@ exports.postNewPassword = (req, res, next) => {
                 });
             });
         }
+    }).catch( err => {
+        const error = new Error(err);
+        error.httpStatusCode = 500;
+        return next(error);
     });
 };

@@ -48,19 +48,26 @@ app.use(csrfProtection);
 app.use(flash())
 
 app.use((req, res, next) => {
+    res.locals.isLoggedIn = req.session.isLoggedIn;
+    res.locals.csrfToken = req.csrfToken();
+    next();
+});
+
+app.use((req, res, next) => {
     if(!req.session.user) {
         return next();
     }
     User.findById(req.session.user._id).then( user => {
+        if(!user) {
+            return next();
+        }
         req.user = user;
         return next();
+    }).catch(err => {
+        const error = new Error(err);
+        error.httpStatusCode = 500;
+        return next(error);
     });
-})
-
-app.use((req, res, next) => {
-    res.locals.isLoggedIn = req.session.isLoggedIn;
-    res.locals.csrfToken = req.csrfToken();
-    next();
 });
 
 app.use('/admin', adminRouter);
@@ -69,6 +76,15 @@ app.use(authRouter);
 
 // for all other routes:
 app.use(errorController.get404);
+
+app.use((error, req, res,next) => {
+    // res.status(error.httpStatusCode).render(...);
+    res.status(500).render('500', {
+        docTitle: 'Page Not Found',
+        path: '/500',
+        isLoggedIn: req.session.isLoggedIn
+    });
+})
 
 mongoose.connect(MONGODB_URI, {
     useNewUrlParser: true

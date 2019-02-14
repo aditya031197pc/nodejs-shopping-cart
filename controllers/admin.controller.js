@@ -56,7 +56,9 @@ exports.postAddProducts = (req, res, next) => {
       console.log("product created");
       res.redirect('/admin/products');  
     }).catch((err) => {
-        console.log("cant create product", err);
+        const error = new Error(err);
+        error.httpStatusCode = 500;
+        return next(error);
     });
 };
 
@@ -73,7 +75,9 @@ exports.getProducts = (req, res, next) => {
             isLoggedIn: req.session.isLoggedIn
         }); 
     }).catch((err) => {
-        console.log('[admin.controller.fetchAll]', err);
+        const error = new Error(err);
+        error.httpStatusCode = 500;
+        return next(error);
     });
 };
 
@@ -105,7 +109,9 @@ exports.getEditProduct = (req, res, next) => {
             errors: []
         });
     }).catch((err)=>{
-        consle.log('[admin.controller.getEditProduct]', err);
+        const error = new Error(err);
+        error.httpStatusCode = 500;
+        return next(error);
     });
 };
 
@@ -148,8 +154,10 @@ exports.postEditProduct = (req, res, next) => {
         return product.save().then((result)=>{
             return res.redirect('/admin/products');
         });
-    }).catch(() => {
-        console.log('[admin.controller.postEditProduct]', err);        
+    }).catch((err) => {
+        const error = new Error(err);
+        error.httpStatusCode = 500;
+        return next(error);       
     });
 };
 
@@ -161,6 +169,9 @@ exports.postDeleteProduct = (req, res, next) => {
         console.log("Product Deleted")
         res.redirect('/admin/products');
     }).catch((err) => {
-       console.log(err); 
+      
+        const error = new Error(err);
+        error.httpStatusCode = 500;
+        return next(error);
     });
 };
