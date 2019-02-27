@@ -24,11 +24,27 @@ exports.getAddProducts = (req, res, next) => {
 exports.postAddProducts = (req, res, next) => {
 
     const title = req.body.title;
-    const imageURL = req.body.imageURL;
+    const image = req.file;
+    console.log('Image ', req.file);
     const price = req.body.price;
     const description = req.body.description;
     const errors = validationResult(req);
-
+    if(!image) {
+        // This means that multer declined the incoming file
+        return res.status(422).render('admin/edit-product', {
+            docTitle: 'Add Product',
+            path: '/admin/add-product',
+            editing: false,
+            isLoggedIn: req.session.isLoggedIn,
+            errors: [ {msg:'Image file should have png, jpg, or jpeg extension'}],
+            oldInput: {
+                title,
+                price,
+                description
+            }
+        });
+    }
+    
     if(!errors.isEmpty()) {
         console.log(errors.array())
         return res.status(422).render('admin/edit-product', {
@@ -39,13 +55,12 @@ exports.postAddProducts = (req, res, next) => {
             errors:errors.array(),
             oldInput: {
                 title,
-                imageURL,
                 price,
                 description
             }
         });
     }
-
+    const imageURL = '\\' + image.path;
     const product = new Product({
             title, price, imageURL, description, userId: req.user 
             // here we pass the entire user object but the objectId gets picked up automatically
@@ -120,7 +135,7 @@ exports.getEditProduct = (req, res, next) => {
 exports.postEditProduct = (req, res, next) => {
     const id = req.body.productId;
     const updatedTitle = req.body.title;
-    const updatedImageURL = req.body.imageURL;
+    const updatedImage = req.file;
     const updatedPrice = req.body.price;
     const updatedDescription = req.body.description;
     const errors = validationResult(req);
@@ -137,18 +152,22 @@ exports.postEditProduct = (req, res, next) => {
                 productId: id,
                 description: updatedDescription,
                 title: updatedTitle,
-                imageURL: updatedImageURL,
                 price: updatedPrice
             }
         });
     }
-
+    const updatedImageURL = null;
+    if(updatedImage) {
+        updatedImageURL = '\\' +image.path; // necessary to add a / before it express.static error
+    }
     Product.findById(id).then( product => {
         if(product.userId.toString() !== req.user._id.toString()) {
             return res.redirect('/');
         }
         product.title = updatedTitle;
-        product.imageURL = updatedImageURL;
+        if(updatedImageURL) {
+            product.imageURL = updatedImageURL;
+        }
         product.description = updatedDescription;
         product.price = updatedPrice;
         return product.save().then((result)=>{

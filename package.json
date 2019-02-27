@@ -27,6 +27,7 @@
     "googleapis": "^27.0.0",
     "mongodb": "^3.1.13",
     "mongoose": "^5.4.8",
+    "multer": "^1.4.1",
     "mysql2": "^1.6.4",
     "nodemailer": "^5.1.1",
     "nodemailer-sendgrid-transport": "^0.2.0",
