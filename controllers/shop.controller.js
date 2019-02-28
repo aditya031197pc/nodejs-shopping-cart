@@ -6,9 +6,18 @@ const PDFDocument = require('pdfkit');
 const Product = require('../models/product.model');
 const Order = require('../models/order.model');
 
+const ITEMS_PER_PAGE = 2;
+
 // GET /
 exports.getIndex = (req, res, next) => {
-    Product.find().then((products) => { 
+    const currentPage = +req.query.page || 1;
+    let totalItems = 0;
+    Product.find().countDocuments().then((numProducts) => {
+        totalItems = numProducts;    
+        return Product.find()
+        .skip((currentPage-1) * ITEMS_PER_PAGE)
+        .limit(ITEMS_PER_PAGE)
+    }).then((products) => { 
         console.log('req.session', req.session);
         console.log('req.session.loggedIn', req.session.isLoggedIn);
         console.log('req.user', req.user);
@@ -16,8 +25,14 @@ exports.getIndex = (req, res, next) => {
             products,
             docTitle: 'Shop',
             path: '/',
-            isLoggedIn: req.session.isLoggedIn
-        });
+            isLoggedIn: req.session.isLoggedIn,
+            currentPage: currentPage,
+            hasNextPage: ITEMS_PER_PAGE * currentPage < totalItems,
+            hasPreviousPage: currentPage > 1,
+            nextPage: currentPage + 1,
+            previousPage: currentPage - 1,
+            lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE)
+        });    
     }).catch((err) => {
         console.log('[shop.controller.getIndex]', err); 
         const error = new Error(err);
@@ -28,13 +43,29 @@ exports.getIndex = (req, res, next) => {
 
 // GET /products
 exports.getProducts = (req, res, next) => {
-    Product.find().then((products) => {
+    const currentPage = +req.query.page || 1;
+    let totalItems = 0;
+    Product.find().countDocuments().then((numProducts) => {
+        totalItems = numProducts;    
+        return Product.find()
+        .skip((currentPage-1) * ITEMS_PER_PAGE)
+        .limit(ITEMS_PER_PAGE)
+    }).then((products) => { 
+        console.log('req.session', req.session);
+        console.log('req.session.loggedIn', req.session.isLoggedIn);
+        console.log('req.user', req.user);
         res.render('shop/product-list', {
             products,
             docTitle: 'All Products',
             path: '/products',
-            isLoggedIn: req.session.isLoggedIn
-        });
+            isLoggedIn: req.session.isLoggedIn,
+            currentPage: currentPage,
+            hasNextPage: ITEMS_PER_PAGE * currentPage < totalItems,
+            hasPreviousPage: currentPage > 1,
+            nextPage: currentPage + 1,
+            previousPage: currentPage - 1,
+            lastPage: Math.ceil(totalItems / ITEMS_PER_PAGE)
+        });    
     }).catch((err) => {
         console.log('[shop.controller.getProducts]', err); 
         const error = new Error(err);
