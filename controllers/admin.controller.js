@@ -1,5 +1,6 @@
 const {validationResult} = require('express-validator/check');
 
+const fileUtil = require('./../utils/file.util');
 const Product = require('../models/product.model');
 
 
@@ -118,7 +119,6 @@ exports.getEditProduct = (req, res, next) => {
                 title: product.title,
                 price: product.price,
                 description: product.description,
-                imageURL: product.imageURL
             },
             isLoggedIn: req.session.isLoggedIn,
             errors: []
@@ -166,6 +166,7 @@ exports.postEditProduct = (req, res, next) => {
         }
         product.title = updatedTitle;
         if(updatedImageURL) {
+            fileUtil.deleteFile(product.imageURL);
             product.imageURL = updatedImageURL;
         }
         product.description = updatedDescription;
@@ -184,11 +185,13 @@ exports.postEditProduct = (req, res, next) => {
 
 exports.postDeleteProduct = (req, res, next) => {
     const id = req.body.productId;
-    Product.deleteOne({_id: id, userId: req.user._id}).then((result) => {
+    Product.findById(id).then((product) => {
+        fileUtil.deleteFile(product.imageURL);
+        return Product.deleteOne({_id: id, userId: req.user._id});
+    }).then((result) => {
         console.log("Product Deleted")
         res.redirect('/admin/products');
     }).catch((err) => {
-      
         const error = new Error(err);
         error.httpStatusCode = 500;
         return next(error);
