@@ -2,6 +2,8 @@ const path = require('path');
 const fs = require('fs');
 
 const PDFDocument = require('pdfkit');
+const stripeKey = process.env.StripeSecretKey;
+var stripe = require("stripe")(stripeKey);
 
 const Product = require('../models/product.model');
 const Order = require('../models/order.model');
@@ -141,7 +143,10 @@ exports.deleteCartProduct = (req, res, next) => {
 // POST /create-order
 
 exports.postCreateOrder = (req, res, next) => {
+    const token = req.body.stripeToken; // Using Express
+    let userCart = null;
     req.user.getCart().then(cart => {
+        userCart = cart;
         const orderItems = cart.products;
         const order = new Order({
             user: {
@@ -153,11 +158,39 @@ exports.postCreateOrder = (req, res, next) => {
         });
         return order.save();
     }).then((result) => {
+        (async () => {
+            const charge = await stripe.charges.create({
+                amount: userCart.totalPrice * 100,
+                currency: 'usd',
+                description: req.user.name + '- OrderTime: ' + new Date().toString(),
+                source: token,
+                metadata: { order_id: result._id.toString()}
+            });
+            })();        
         return req.user.clearCart();
     }).then(result => {
         res.redirect('/orders');
     }).catch((err) => {
         console.log('create order', err);
+        const error = new Error(err);
+        error.httpStatusCode = 500;
+        return next(error);
+    });
+}
+
+// GET /checkout
+
+exports.getCheckout = (req, res, next) => {
+    req.user.getCart().then((cart) => {
+        console.log('cart', cart);
+        res.render('shop/checkout', {
+            docTitle: 'Checkout',
+            path: '/checkout',
+            cart,
+            stripeKey: process.env.StripePublicKey,
+            isLoggedIn: req.session.isLoggedIn
+        });
+    }).catch((err) => {
         const error = new Error(err);
         error.httpStatusCode = 500;
         return next(error);
@@ -241,3 +274,4 @@ exports.getInvoice = (req, res, next) => {
         return next(err);
     });
 }
+

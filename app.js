@@ -21,6 +21,8 @@ const adminRouter = require('./routes/admin.routes').router;
 const shopRouter = require('./routes/shop.routes').router;
 const authRouter = require('./routes/auth.routes').router;
 const errorController = require('./controllers/error.controller');
+const isAuth = require('./middlewares/is-auth.middleware');
+const shopController = require('./controllers/shop.controller');
 
 const MONGODB_URI = process.env.MONGODB_URI;
 const csrfProtection = csrf(); 
@@ -70,13 +72,10 @@ app.use(session({
     store: sessionStore,
 })); 
 
-app.use(csrfProtection);
-
 app.use(flash())
 
 app.use((req, res, next) => {
     res.locals.isLoggedIn = req.session.isLoggedIn;
-    res.locals.csrfToken = req.csrfToken();
     next();
 });
 
@@ -96,6 +95,16 @@ app.use((req, res, next) => {
         return next(error);
     });
 });
+
+// This route must not have csrf protection
+app.post('/create-order', isAuth, shopController.postCreateOrder);
+
+app.use(csrfProtection);
+app.use((req, res, next) => {
+    res.locals.csrfToken = req.csrfToken();
+    next();
+});
+
 
 app.use('/admin', adminRouter);
 app.use(shopRouter);

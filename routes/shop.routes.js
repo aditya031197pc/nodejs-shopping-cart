@@ -15,7 +15,10 @@ router.post('/cart', isAuth, shopController.postCart);
 
 router.post('/cart-delete-product', isAuth, shopController.deleteCartProduct);
 
-router.post('/create-order', isAuth, shopController.postCreateOrder);
+// create-order in app.js
+
+
+router.get('/checkout', isAuth, shopController.getCheckout);
 
 router.get('/orders', isAuth, shopController.getOrders);
 
