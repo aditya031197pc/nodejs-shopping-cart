@@ -9,5 +9,6 @@ Customer features:
   - Create an order- Payment using stripe.
 
 Admin features:
-  - adding, editing removing products.
+  - adding, editing removing products
+  - image upload for product preview.
   
